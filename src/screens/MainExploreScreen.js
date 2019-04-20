@@ -1,29 +1,38 @@
-import { MapView } from 'expo';
-import { Button, Container, Fab, Icon, Text, Toast } from 'native-base';
-import PropTypes from 'prop-types';
-import React, { Component } from 'react';
-import { Alert, Platform, StyleSheet, Vibration, View } from 'react-native';
-import ReactNativeAN from 'react-native-alarm-notification';
-import RNGooglePlaces from 'react-native-google-places';
-import BackgroundGeolocation from 'react-native-mauron85-background-geolocation';
-import { withNavigation } from 'react-navigation';
-import { connect } from 'react-redux';
-import { setRangeOption } from '../actions';
+import { MapView } from "expo";
+import { Button, Container, Fab, Icon, Text, Toast } from "native-base";
+import PropTypes from "prop-types";
+import React, { Component } from "react";
+import {
+  Alert,
+  Platform,
+  StyleSheet,
+  Vibration,
+  View,
+  Modal,
+  TouchableOpacity
+} from "react-native";
+import ReactNativeAN from "react-native-alarm-notification";
+import RNGooglePlaces from "react-native-google-places";
+import BackgroundGeolocation from "react-native-mauron85-background-geolocation";
+import { withNavigation } from "react-navigation";
+import { connect } from "react-redux";
+import { setRangeOption } from "../actions";
 import {
   changeLocation,
   changeStationType,
   startNavigating,
-  stopNavigating,
-} from '../actions/ExploreActions';
-import { computeDistanceBetween } from '../common/HelperFunction';
-import NavigationRoute from '../components/NavigationRoute';
-import showRangeOptions from '../components/RangeOptions';
-import StationMarkers from '../components/StationMarkers';
-import Colors from '../constants/Colors';
-import Layout from '../constants/Layout';
-import { RANGE_OPTIONS, RANGE_VALUES } from '../constants/RangeOptions';
-import { ATM, GAS, NONE } from '../constants/StationTypes';
-import { propTypes as LocationProps } from '../model/Location';
+  stopNavigating
+} from "../actions/ExploreActions";
+import { computeDistanceBetween } from "../common/HelperFunction";
+import NavigationRoute from "../components/NavigationRoute";
+import showRangeOptions from "../components/RangeOptions";
+import StationMarkers from "../components/StationMarkers";
+import Colors from "../constants/Colors";
+import Layout from "../constants/Layout";
+import { RANGE_OPTIONS, RANGE_VALUES } from "../constants/RangeOptions";
+import { ATM, GAS, NONE } from "../constants/StationTypes";
+import { propTypes as LocationProps } from "../model/Location";
+import { newTS } from "uuid-js";
 
 class MainExploreScreen extends Component {
   static propTypes = {
@@ -36,7 +45,7 @@ class MainExploreScreen extends Component {
     changeLocation: PropTypes.func.isRequired,
     soundID: PropTypes.number.isRequired,
     vibrate: PropTypes.bool.isRequired,
-    stationType: PropTypes.oneOf([ATM, GAS, NONE]).isRequired,
+    stationType: PropTypes.oneOf([ATM, GAS, NONE]).isRequired
   };
 
   constructor() {
@@ -48,12 +57,13 @@ class MainExploreScreen extends Component {
        */
       currentLocation: {
         latitude: 10.8703,
-        longitude: 106.8034513,
+        longitude: 106.8034513
       },
       /**
        * If the notifying process is running.
        */
       isNotifying: false,
+      ModalVisibleStatus: false,
     };
 
     this.mapView = null;
@@ -69,6 +79,9 @@ class MainExploreScreen extends Component {
     this.onToggleNavigation = this.onToggleNavigation.bind(this);
     this.onStationPress = this.onStationPress.bind(this);
   }
+  ShowModalFunction(visible) {
+    this.setState({ ModalVisibleStatus: visible });
+  }
 
   render() {
     return (
@@ -81,15 +94,17 @@ class MainExploreScreen extends Component {
             full
             androidRippleColor="lightgray"
             onPress={this.onSearchPress}
-            style={{ flex: 1 }}>
+            style={{ flex: 1 }}
+          >
             <Text
               ellipsizeMode="tail"
               numberOfLines={1}
               uppercase={false}
-              style={{ color: Colors.darkGrayBackground }}>
+              style={{ color: Colors.darkGrayBackground }}
+            >
               {this.props.location
                 ? `${this.props.location.address}`
-                : 'Search here'}
+                : "Search here"}
             </Text>
           </Button>
           <Button
@@ -99,8 +114,9 @@ class MainExploreScreen extends Component {
             transparent
             style={styles.pickButton}
             androidRippleColor="lightgray"
-            onPress={this.onPickPress}>
-            <Icon name="location" type="Entypo" style={{ color: 'gray' }} />
+            onPress={this.onPickPress}
+          >
+            <Icon name="location" type="Entypo" style={{ color: "gray" }} />
           </Button>
         </View>
         <Fab
@@ -108,47 +124,51 @@ class MainExploreScreen extends Component {
           active={false}
           style={styles.rangeButton}
           position="bottomRight"
-          onPress={this.onRangePress}>
+          onPress={this.onRangePress}
+        >
           <Icon
             name="street-view"
             type="FontAwesome"
-            style={{ color: 'gray' }}
+            style={{ color: "gray" }}
           />
         </Fab>
         <Fab
           delayPressIn={0}
           style={styles.myLocationButton}
           position="bottomRight"
-          onPress={this.onLocatePress}>
+          onPress={this.onLocatePress}
+        >
           <Icon
             name="my-location"
             type="MaterialIcons"
-            style={{ color: 'gray' }}
+            style={{ color: "gray" }}
           />
         </Fab>
         <Fab
           delayPressIn={0}
           style={styles.startButton}
           position="bottomRight"
-          onPress={this.onToggleNavigation}>
-          <Icon name={this.props.isNavigating ? 'pause' : 'play'} />
+          onPress={this.onToggleNavigation}
+        >
+          <Icon name={this.props.isNavigating ? "pause" : "play"} />
         </Fab>
         <MapView
-          style={{ flex: 1, alignSelf: 'stretch' }}
+          style={{ flex: 1, alignSelf: "stretch" }}
           initialRegion={{
             latitude: this.state.currentLocation.latitude,
             longitude: this.state.currentLocation.longitude,
             latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
+            longitudeDelta: 0.0421
           }}
-          ref={(c) => (this.mapView = c)}
-          showsUserLocation>
+          ref={c => (this.mapView = c)}
+          showsUserLocation
+        >
           {this.props.location && (
             <NavigationRoute
               currentLocation={this.state.currentLocation}
               destination={{
                 latitude: this.props.location.latitude,
-                longitude: this.props.location.longitude,
+                longitude: this.props.location.longitude
               }}
               onReady={this.onNavigationRouteReady}
               radius={RANGE_VALUES[this.props.rangeOption]}
@@ -161,6 +181,94 @@ class MainExploreScreen extends Component {
             />
           )}
         </MapView>
+        <Modal
+          transparent={true}
+          animationType={"slide"}
+          visible={this.state.ModalVisibleStatus}
+          onRequestClose={() => {
+            this.ShowModalFunction(!this.state.ModalVisibleStatus);
+          }}
+        >
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              flexDirection: "column"
+            }}
+          >
+            <View style={styles.ModalInsideView}>
+              <Text
+                style={{
+                  fontSize: 23,
+                  marginBottom: 20,
+                  color: "#707171",
+                  padding: 20,
+                  textAlign: "center"
+                }}
+              >
+                {this.getLocationString()}
+                {"\n"}{"\n"}
+                <Text
+                  style={{
+                    fontSize: 16,
+                    color: "#848380"
+                  }}
+                >
+                  Parking this place with 5000vnd/ 1 hour
+                </Text>
+              </Text>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent:'space-around'
+                }}
+              >
+                <TouchableOpacity
+                  style={{
+                    width:120,
+                    height:40,
+                    marginRight: 10,
+                    flexDirection:'column',
+                    justifyContent: 'center',
+                    backgroundColor: "#9ed4f3",
+                    borderRadius: 5
+                  }}
+                >
+                  <Text
+                    style={{
+                      textAlign:'center',
+                      color: "#fff"
+                    }}
+                  >
+                    GO NOW
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{
+                    width:120,
+                    height:40,
+                    marginLeft: 10,
+                    flexDirection:'column',
+                    justifyContent: 'center',
+                    backgroundColor: "#ff886c",
+                    borderRadius: 5
+                  }}
+                >
+                  <Text
+                    style={{
+                      textAlign:'center',
+                      color: "#fff"
+                    }}
+                  >
+                    CANCEL
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </Container>
     );
   }
@@ -207,7 +315,7 @@ class MainExploreScreen extends Component {
     this.stopBackgroundGeolocation();
 
     // unregister all event listeners
-    BackgroundGeolocation.events.forEach((event) =>
+    BackgroundGeolocation.events.forEach(event =>
       BackgroundGeolocation.removeAllListeners(event)
     );
   }
@@ -220,18 +328,22 @@ class MainExploreScreen extends Component {
       }
       return `${location.name}, ${location.address}`;
     }
-    return 'Search here';
+    return "Search here";
   }
 
   onStationPress(marker) {
+    const newState = this.state;
+    newState.ModalVisibleStatus=true;
+    this.setState(newState);
+
     const station = {
       name: marker.title,
       address: marker.title,
       latitude: marker.lat,
-      longitude: marker.lng,
+      longitude: marker.lng
     };
-    this.props.changeLocation(station);
-    this.props.changeStationType(NONE);
+    //this.props.changeLocation(station);
+    // this.props.changeStationType(NONE);
   }
 
   onNavigationRouteReady(result) {
@@ -239,29 +351,29 @@ class MainExploreScreen extends Component {
   }
 
   onSearchPress() {
-    this.props.navigation.navigate('DetailExplore');
+    this.props.navigation.navigate("DetailExplore");
   }
 
   async onPickPress() {
     let location = null;
     await RNGooglePlaces.openPlacePickerModal()
-      .then((place) => {
+      .then(place => {
         location = place;
-        console.info('[INFO]', '[onPickPress]', '[SUCCESS]', location.address);
+        console.info("[INFO]", "[onPickPress]", "[SUCCESS]", location.address);
       })
-      .catch((error) => console.warn('[ERROR]', '[onPickPress]', error));
+      .catch(error => console.warn("[ERROR]", "[onPickPress]", error));
 
     if (location == null) {
       console.info(
-        '[INFO]',
-        '[onPickPress]',
-        'Unable to find location from result item.'
+        "[INFO]",
+        "[onPickPress]",
+        "Unable to find location from result item."
       );
       Toast.show({
-        text: 'Unable to pick destination.',
-        buttonText: 'Okay',
-        type: 'danger',
-        duration: 3000,
+        text: "Unable to pick destination.",
+        buttonText: "Okay",
+        type: "danger",
+        duration: 3000
       });
       return;
     }
@@ -271,13 +383,13 @@ class MainExploreScreen extends Component {
 
   onLocatePress() {
     this.callWithLocationServices(() => {
-      BackgroundGeolocation.getCurrentLocation((location) => {
+      BackgroundGeolocation.getCurrentLocation(location => {
         const currentLocation = {
           longitude: location.longitude,
-          latitude: location.latitude,
+          latitude: location.latitude
         };
         this.setState({
-          ...currentLocation,
+          ...currentLocation
         });
         this.mapView.fitToCoordinates([currentLocation]);
       });
@@ -285,7 +397,7 @@ class MainExploreScreen extends Component {
   }
 
   onRangePress() {
-    showRangeOptions(this.props.rangeOption, (selectedIndex) => {
+    showRangeOptions(this.props.rangeOption, selectedIndex => {
       if (selectedIndex !== undefined && selectedIndex !== null) {
         this.props.setRangeOption(selectedIndex);
       }
@@ -297,23 +409,23 @@ class MainExploreScreen extends Component {
     if (this.props.isNavigating) {
       if (!this.props.isNavigating) {
         Toast.show({
-          text: 'Alarm has already stopped!',
-          buttonText: 'Okay',
-          duration: 3000,
+          text: "Alarm has already stopped!",
+          buttonText: "Okay",
+          duration: 3000
         });
       } else if (!this.props.location) {
         console.warn(
-          '[WARN]',
-          '[onToggleNavigation]',
-          'There is no location but [isNavigating] is true. Turning off...'
+          "[WARN]",
+          "[onToggleNavigation]",
+          "There is no location but [isNavigating] is true. Turning off..."
         );
         this.props.stopNavigating();
       } else {
         this.stopNavigating();
         Toast.show({
-          text: 'Alarm stopped!',
-          buttonText: 'Okay',
-          duration: 3000,
+          text: "Alarm stopped!",
+          buttonText: "Okay",
+          duration: 3000
         });
       }
     }
@@ -321,25 +433,25 @@ class MainExploreScreen extends Component {
     else {
       if (this.props.isNavigating) {
         Toast.show({
-          text: 'Alarm has already been set!',
-          buttonText: 'Okay',
-          duration: 3000,
+          text: "Alarm has already been set!",
+          buttonText: "Okay",
+          duration: 3000
         });
       } else if (!this.props.location) {
         Toast.show({
-          text: 'Please select a destination',
-          buttonText: 'Okay',
-          type: 'danger',
-          duration: 3000,
+          text: "Please select a destination",
+          buttonText: "Okay",
+          type: "danger",
+          duration: 3000
         });
       } else {
         this.callWithLocationServices(() => {
           this.startNavigating();
           Toast.show({
-            text: 'Alarm set!',
-            buttonText: 'Okay',
-            type: 'success',
-            duration: 3000,
+            text: "Alarm set!",
+            buttonText: "Okay",
+            type: "success",
+            duration: 3000
           });
         });
       }
@@ -355,7 +467,7 @@ class MainExploreScreen extends Component {
   stopNavigating() {
     //immediately stop sound alarm
     ReactNativeAN.stopAlarm();
-    ReactNativeAN.removeFiredNotification('1997');
+    ReactNativeAN.removeFiredNotification("1997");
     Vibration.cancel();
     this.setState({ isNotifying: false });
     this.stopBackgroundGeolocation();
@@ -364,7 +476,7 @@ class MainExploreScreen extends Component {
 
   isInRange() {
     if (!this.props.location) {
-      console.warn('[ERROR]', '[isInRange]', 'No location.');
+      console.warn("[ERROR]", "[isInRange]", "No location.");
       return;
     }
 
@@ -386,18 +498,18 @@ class MainExploreScreen extends Component {
       stationaryRadius: 50,
       distanceFilter: 50,
       notificationsEnabled: true,
-      notificationTitle: 'Location Notifier',
-      notificationText: 'Location Notifier is tracking your location.',
+      notificationTitle: "Location Notifier",
+      notificationText: "Location Notifier is tracking your location.",
       startOnBoot: false,
       stopOnTerminate: true,
       locationProvider: BackgroundGeolocation.ACTIVITY_PROVIDER,
       interval: 4000,
       fastestInterval: 4000,
       activitiesInterval: 10000,
-      stopOnStillActivity: true,
+      stopOnStillActivity: true
     });
 
-    BackgroundGeolocation.on('location', (location) => {
+    BackgroundGeolocation.on("location", location => {
       // handle your locations here
       // to perform long running operation on iOS
       // you need to create background task
@@ -406,38 +518,38 @@ class MainExploreScreen extends Component {
       this.setState({
         currentLocation: {
           longitude: location.longitude,
-          latitude: location.latitude,
-        },
+          latitude: location.latitude
+        }
       });
     });
 
-    BackgroundGeolocation.on('stationary', (stationaryLocation) => {
+    BackgroundGeolocation.on("stationary", stationaryLocation => {
       // handle stationary locations here
       console.info(
-        '[INFO]',
-        '[BackgroundGeolocation]',
-        '[stationary]',
+        "[INFO]",
+        "[BackgroundGeolocation]",
+        "[stationary]",
         stationaryLocation
       );
     });
 
-    BackgroundGeolocation.on('error', (error) => {
-      console.warn('[ERROR]', '[BackgroundGeolocation]', error);
+    BackgroundGeolocation.on("error", error => {
+      console.warn("[ERROR]", "[BackgroundGeolocation]", error);
     });
 
-    BackgroundGeolocation.on('start', () => {
-      console.info('[INFO]', '[BackgroundGeolocation]', 'Started.');
+    BackgroundGeolocation.on("start", () => {
+      console.info("[INFO]", "[BackgroundGeolocation]", "Started.");
     });
 
-    BackgroundGeolocation.on('stop', () => {
-      console.info('[INFO]', '[BackgroundGeolocation]', 'Stopped.');
+    BackgroundGeolocation.on("stop", () => {
+      console.info("[INFO]", "[BackgroundGeolocation]", "Stopped.");
     });
 
-    BackgroundGeolocation.on('authorization', (status) => {
+    BackgroundGeolocation.on("authorization", status => {
       console.info(
-        '[INFO]',
-        '[BackgroundGeolocation]',
-        'authorization status: ',
+        "[INFO]",
+        "[BackgroundGeolocation]",
+        "authorization status: ",
         status
       );
       if (status !== BackgroundGeolocation.AUTHORIZED) {
@@ -445,22 +557,22 @@ class MainExploreScreen extends Component {
       }
     });
 
-    BackgroundGeolocation.on('background', () => {
-      console.info('[INFO]', '[BackgroundGeolocation]', 'is in background');
+    BackgroundGeolocation.on("background", () => {
+      console.info("[INFO]", "[BackgroundGeolocation]", "is in background");
     });
 
-    BackgroundGeolocation.on('foreground', () => {
-      console.info('[INFO]', '[BackgroundGeolocation]', 'is on foreground');
+    BackgroundGeolocation.on("foreground", () => {
+      console.info("[INFO]", "[BackgroundGeolocation]", "is on foreground");
     });
   }
 
   isLocationPermitted(callback) {
     if (callback == null) {
-      console.log('[ERROR]', '[isLocationPermitted]', 'callback is null.');
+      console.log("[ERROR]", "[isLocationPermitted]", "callback is null.");
       return;
     }
 
-    BackgroundGeolocation.checkStatus((status) => {
+    BackgroundGeolocation.checkStatus(status => {
       callback(status.authorization == BackgroundGeolocation.AUTHORIZED);
     });
   }
@@ -468,94 +580,94 @@ class MainExploreScreen extends Component {
   isLocationServicesEnabled(callback) {
     if (callback == null) {
       console.log(
-        '[ERROR]',
-        '[isLocationServicesEnabled]',
-        'callback is null.'
+        "[ERROR]",
+        "[isLocationServicesEnabled]",
+        "callback is null."
       );
       return;
     }
 
-    BackgroundGeolocation.checkStatus((status) => {
+    BackgroundGeolocation.checkStatus(status => {
       callback(status.locationServicesEnabled);
     });
   }
 
   requestLocationPermission() {
     Alert.alert(
-      'Location permission is required',
-      'Would you like to open app settings?',
+      "Location permission is required",
+      "Would you like to open app settings?",
       [
         {
-          text: 'Yes',
+          text: "Yes",
           onPress: () => BackgroundGeolocation.showAppSettings(),
-          style: 'default',
+          style: "default"
         },
         {
-          text: 'No',
+          text: "No",
           onPress: () => {
-            console.warn('[WARN]', '[BackgroundGeolocation]', 'No Pressed.');
+            console.warn("[WARN]", "[BackgroundGeolocation]", "No Pressed.");
             Toast.show({
-              text: 'Location permission is required.',
-              buttonText: 'Okay',
-              type: 'danger',
-              duration: 3000,
+              text: "Location permission is required.",
+              buttonText: "Okay",
+              type: "danger",
+              duration: 3000
             });
           },
-          style: 'cancel',
-        },
+          style: "cancel"
+        }
       ]
     );
   }
 
   requestLocationServices() {
-    if (Platform.OS === 'android') {
+    if (Platform.OS === "android") {
       Alert.alert(
-        'Location services are disabled',
-        'Would you like to open location settings?',
+        "Location services are disabled",
+        "Would you like to open location settings?",
         [
           {
-            text: 'Yes',
+            text: "Yes",
             onPress: () => BackgroundGeolocation.showLocationSettings(),
-            style: 'default',
+            style: "default"
           },
           {
-            text: 'No',
+            text: "No",
             onPress: () => {
               console.warn(
-                '[WARN]',
-                '[requestLocationServices]',
-                'No Pressed.'
+                "[WARN]",
+                "[requestLocationServices]",
+                "No Pressed."
               );
               Toast.show({
-                text: 'Location services are disabled.',
-                buttonText: 'Okay',
-                type: 'danger',
-                duration: 3000,
+                text: "Location services are disabled.",
+                buttonText: "Okay",
+                type: "danger",
+                duration: 3000
               });
             },
-            style: 'cancel',
-          },
+            style: "cancel"
+          }
         ]
       );
     } else {
       Toast.show({
-        text: 'Location services are disabled.',
-        buttonText: 'Okay',
-        type: 'danger',
-        duration: 3000,
+        text: "Location services are disabled.",
+        buttonText: "Okay",
+        type: "danger",
+        duration: 3000
       });
     }
   }
 
   callWithLocationServices(callback) {
     if (callback == null) {
-      console.log('[ERROR]', '[callWithLocationServices]', 'callback is null.');
+      console.log("[ERROR]", "[callWithLocationServices]", "callback is null.");
       return;
     }
 
-    this.isLocationPermitted((permitted) => {
+    this.isLocationPermitted(permitted => {
       if (permitted) {
-        this.isLocationServicesEnabled((enabled) => {
+        this.isLocationServicesEnabled(enabled => {
           if (enabled) {
             callback();
           } else {
@@ -569,23 +681,23 @@ class MainExploreScreen extends Component {
   }
 
   updateCurrentLocation() {
-    BackgroundGeolocation.getCurrentLocation((location) => {
+    BackgroundGeolocation.getCurrentLocation(location => {
       this.setState({
         currentLocation: {
           longitude: location.longitude,
-          latitude: location.latitude,
-        },
+          latitude: location.latitude
+        }
       });
     });
   }
 
   startBackgroundGeolocation() {
-    console.info('[INFO]', '[startBackgroundGeolocation]', 'begin');
-    BackgroundGeolocation.checkStatus((status) => {
+    console.info("[INFO]", "[startBackgroundGeolocation]", "begin");
+    BackgroundGeolocation.checkStatus(status => {
       console.info(
-        '[INFO]',
-        '[BackgroundGeolocation]',
-        'status:',
+        "[INFO]",
+        "[BackgroundGeolocation]",
+        "status:",
         JSON.stringify(status)
       );
 
@@ -596,12 +708,12 @@ class MainExploreScreen extends Component {
   }
 
   stopBackgroundGeolocation() {
-    console.info('[INFO]', '[stopBackgroundGeolocation]', 'begin');
-    BackgroundGeolocation.checkStatus((status) => {
+    console.info("[INFO]", "[stopBackgroundGeolocation]", "begin");
+    BackgroundGeolocation.checkStatus(status => {
       console.info(
-        '[INFO]',
-        '[BackgroundGeolocation]',
-        'status:',
+        "[INFO]",
+        "[BackgroundGeolocation]",
+        "status:",
         JSON.stringify(status)
       );
 
@@ -614,19 +726,19 @@ class MainExploreScreen extends Component {
   configAlarmNotification() {
     const soundName = `alarm${this.props.soundID}.mp3`;
     const alarmNotifData = {
-      id: '1997', // Required.
-      title: 'Location Notifier',
+      id: "1997", // Required.
+      title: "Location Notifier",
       message: `You are within ${
         RANGE_OPTIONS[this.props.rangeOption]
       } from your destination.`,
-      channel: '1997', // Same id as specified in MainApplication's onCreate method
-      ticker: 'Location Notifier ticker',
+      channel: "1997", // Same id as specified in MainApplication's onCreate method
+      ticker: "Location Notifier ticker",
       vibrate: false,
-      small_icon: 'ic_launcher',
-      large_icon: 'ic_launcher',
+      small_icon: "ic_launcher",
+      large_icon: "ic_launcher",
       play_sound: true,
       sound_name: soundName, // Plays custom notification ringtone if sound_name: null
-      color: Colors.primary,
+      color: Colors.primary
     };
 
     return alarmNotifData;
@@ -638,62 +750,72 @@ class MainExploreScreen extends Component {
     if (this.props.vibrate) {
       Vibration.vibrate([1000, 2000], true);
     }
-    this.props.navigation.navigate('Alarm');
-    console.info('[INFO]', '[raiseAlarm]', 'successfully');
+    this.props.navigation.navigate("Alarm");
+    console.info("[INFO]", "[raiseAlarm]", "successfully");
   }
 }
 
 const styles = StyleSheet.create({
   shrink: {
-    flex: 0,
+    flex: 0
   },
   addressBar: {
     zIndex: 1,
-    position: 'absolute',
+    position: "absolute",
     top: 10 + Layout.statusBarHeight,
     left: 10,
     right: 10,
     borderRadius: 10,
     elevation: 2,
-    backgroundColor: 'white',
-    borderColor: 'lightgray',
-    flexDirection: 'row',
+    backgroundColor: "white",
+    borderColor: "lightgray",
+    flexDirection: "row"
   },
   pickButton: {
-    alignSelf: 'center',
-    marginLeft: -5,
+    alignSelf: "center",
+    marginLeft: -5
   },
   startButton: {
     zIndex: 1,
-    backgroundColor: Colors.tintColor,
+    backgroundColor: Colors.tintColor
   },
   myLocationButton: {
     zIndex: 1,
-    backgroundColor: 'white',
-    bottom: 75,
+    backgroundColor: "white",
+    bottom: 75
   },
   rangeButton: {
     zIndex: 1,
-    backgroundColor: 'white',
-    bottom: 150,
+    backgroundColor: "white",
+    bottom: 150
+  },
+  ModalInsideView: {
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FFF",
+    height: 300,
+    width: "90%",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#cccccc"
   },
 });
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   location: state.exploreReducer.location,
   rangeOption: state.settingsReducer.rangeOption,
   soundID: state.settingsReducer.soundID,
   isNavigating: state.exploreReducer.isNavigating,
   vibrate: state.settingsReducer.vibrate,
-  stationType: state.exploreReducer.stationType,
+  stationType: state.exploreReducer.stationType
 });
 
-const mapDispatchToProps = (dispatch) => ({
-  setRangeOption: (optionID) => dispatch(setRangeOption(optionID)),
+const mapDispatchToProps = dispatch => ({
+  setRangeOption: optionID => dispatch(setRangeOption(optionID)),
   stopNavigating: () => dispatch(stopNavigating()),
   startNavigating: () => dispatch(startNavigating()),
-  changeLocation: (location) => dispatch(changeLocation(location)),
-  changeStationType: (type) => dispatch(changeStationType(type)),
+  changeLocation: location => dispatch(changeLocation(location)),
+  changeStationType: type => dispatch(changeStationType(type))
 });
 
 export default withNavigation(
