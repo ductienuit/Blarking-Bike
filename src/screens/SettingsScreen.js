@@ -144,16 +144,18 @@ export class SettingsScreen extends Component {
               />
             </Col>
             <Col size={3} style={styles.aboutDescriptionContainer}>
-              <Text style={styles.aboutAppNameText}>Location Notifier</Text>
+              <Text style={styles.aboutAppNameText}>Blarking-Bike</Text>
               <Text>
                 An app that will notify you when you are about to reach your
-                destination.
+                parking destination.
               </Text>
               <View style={{ height: 16 }} />
               <Text style={{ fontWeight: 'bold' }}>Developed by</Text>
-              <Text>Chung Mạnh Quỳnh</Text>
               <Text>Lê Đức Tiến</Text>
+              <Text>Nguyễn Phi Hùng</Text>
               <Text>Phan Đức Anh</Text>
+              <Text>Nguyễn Quang Hải</Text>
+              <Text>Hoàng Linh</Text>
             </Col>
           </Grid>
         </Content>

@@ -103,7 +103,7 @@ class DetailExploreScreen extends Component {
               <Text
                 uppercase={false}
                 style={{ color: Colors.darkGrayBackground }}>
-                Gas Station
+                Parking Station
               </Text>
             </Button>
             <Button
@@ -123,7 +123,7 @@ class DetailExploreScreen extends Component {
               <Text
                 uppercase={false}
                 style={{ color: Colors.darkGrayBackground }}>
-                Local ATM
+                
               </Text>
             </Button>
           </View>

@@ -168,7 +168,8 @@ class MainExploreScreen extends Component {
   componentDidMount() {
     //Reset destination location
     this.props.changeLocation(null);
-    this.props.changeStationType(NONE);
+    //this.props.changeStationType(NONE);
+    this.props.changeStationType(GAS);
     this.props.stopNavigating();
     this.stopBackgroundGeolocation();
     this.updateCurrentLocation();
