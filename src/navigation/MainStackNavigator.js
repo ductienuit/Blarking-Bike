@@ -4,6 +4,7 @@ import DetailExploreScreen from '../screens/DetailExploreScreen';
 import EditFavoriteScreen from '../screens/EditFavoriteScreen';
 import RingtoneScreen from '../screens/RingtoneScreen';
 import BottomTabNavigator from './BottomTabNavigator';
+import ScanScreen from '../screens/ScanScreen';
 
 export default createStackNavigator(
   {
@@ -36,6 +37,12 @@ export default createStackNavigator(
       navigationOptions: {
         title: 'Alarm Screen',
       },
+    },
+    ScanQR:{
+      screen:ScanScreen,
+      navigationOptions:{
+        title:'Scan Screen',
+      }
     },
   },
   {

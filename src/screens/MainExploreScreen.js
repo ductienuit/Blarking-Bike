@@ -85,6 +85,7 @@ class MainExploreScreen extends Component {
     this.setState({ ModalVisibleStatus: visible });
   }
   onQrPress(){
+    this.props.navigation.navigate("ScanQR");
   }
 
   render() {
