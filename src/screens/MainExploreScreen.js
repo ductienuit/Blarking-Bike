@@ -50,7 +50,7 @@ class MainExploreScreen extends Component {
 
   constructor() {
     super();
-
+    
     this.state = {
       /**
        * The current location of the device.
@@ -68,6 +68,7 @@ class MainExploreScreen extends Component {
 
     this.mapView = null;
     this.configBackgroundGeolocation();
+    this.selectStation=null;
 
     this.onSearchPress = this.onSearchPress.bind(this);
     this.onPickPress = this.onPickPress.bind(this);
@@ -78,9 +79,12 @@ class MainExploreScreen extends Component {
     this.stopNavigating = this.stopNavigating.bind(this);
     this.onToggleNavigation = this.onToggleNavigation.bind(this);
     this.onStationPress = this.onStationPress.bind(this);
+    this.onQrPress = this.onQrPress.bind(this);
   }
   ShowModalFunction(visible) {
     this.setState({ ModalVisibleStatus: visible });
+  }
+  onQrPress(){
   }
 
   render() {
@@ -119,6 +123,19 @@ class MainExploreScreen extends Component {
             <Icon name="location" type="Entypo" style={{ color: "gray" }} />
           </Button>
         </View>
+        <Fab
+          delayPressIn={0}
+          active={false}
+          style={styles.qrButton}
+          position="bottomRight"
+          onPress={this.onQrPress}
+        >
+          <Icon
+            name="qrcode-scan"
+            type="MaterialCommunityIcons"
+            style={{ color: "gray" }}
+          />
+        </Fab>
         <Fab
           delayPressIn={0}
           active={false}
@@ -208,7 +225,8 @@ class MainExploreScreen extends Component {
                 }}
               >
                 {this.getLocationString()}
-                {"\n"}{"\n"}
+                {"\n"}
+                {"\n"}
                 <Text
                   style={{
                     fontSize: 16,
@@ -222,23 +240,28 @@ class MainExploreScreen extends Component {
               <View
                 style={{
                   flexDirection: "row",
-                  justifyContent:'space-around'
+                  justifyContent: "space-around"
                 }}
               >
                 <TouchableOpacity
                   style={{
-                    width:120,
-                    height:40,
+                    width: 120,
+                    height: 40,
                     marginRight: 10,
-                    flexDirection:'column',
-                    justifyContent: 'center',
+                    flexDirection: "column",
+                    justifyContent: "center",
                     backgroundColor: "#9ed4f3",
                     borderRadius: 5
+                  }}
+                  onPress={() => {
+                    this.ShowModalFunction(!this.state.ModalVisibleStatus);
+                    this.props.changeLocation(this.selectStation);
+                    this.props.changeStationType(NONE);
                   }}
                 >
                   <Text
                     style={{
-                      textAlign:'center',
+                      textAlign: "center",
                       color: "#fff"
                     }}
                   >
@@ -247,18 +270,21 @@ class MainExploreScreen extends Component {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={{
-                    width:120,
-                    height:40,
+                    width: 120,
+                    height: 40,
                     marginLeft: 10,
-                    flexDirection:'column',
-                    justifyContent: 'center',
+                    flexDirection: "column",
+                    justifyContent: "center",
                     backgroundColor: "#ff886c",
                     borderRadius: 5
+                  }}
+                  onPress={() => {
+                    this.ShowModalFunction(!this.state.ModalVisibleStatus);
                   }}
                 >
                   <Text
                     style={{
-                      textAlign:'center',
+                      textAlign: "center",
                       color: "#fff"
                     }}
                   >
@@ -336,12 +362,13 @@ class MainExploreScreen extends Component {
     newState.ModalVisibleStatus=true;
     this.setState(newState);
 
-    const station = {
+    const newstation = {
       name: marker.title,
       address: marker.title,
       latitude: marker.lat,
       longitude: marker.lng
     };
+    this.selectStation = newstation;
     //this.props.changeLocation(station);
     // this.props.changeStationType(NONE);
   }
@@ -788,6 +815,11 @@ const styles = StyleSheet.create({
     zIndex: 1,
     backgroundColor: "white",
     bottom: 150
+  },
+  qrButton: {
+    zIndex: 1,
+    backgroundColor: "#f6db2f",
+    bottom: 225
   },
   ModalInsideView: {
     justifyContent: "center",
