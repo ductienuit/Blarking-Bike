@@ -22,6 +22,7 @@ import io.invertase.firebase.database.RNFirebaseDatabasePackage;
 import com.emekalites.react.alarm.notification.ANPackage;
 import com.arttitude360.reactnative.rngoogleplaces.RNGooglePlacesPackage;
 import com.marianhello.bgloc.react.BackgroundGeolocationPackage;
+import com.wix.RNCameraKit.RNCameraKitPackage;
 
 public class MainApplication extends ExpoApplication {
   @Override
@@ -67,6 +68,7 @@ public class MainApplication extends ExpoApplication {
             new RNFirebaseDatabasePackage(),
             new ANPackage(),
             new RNGooglePlacesPackage(),
+            new RNCameraKitPackage(),
             new BackgroundGeolocationPackage()
     );
   }
