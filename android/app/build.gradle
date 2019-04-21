@@ -98,6 +98,7 @@ configurations.all {
 apply from: 'expo.gradle'
 
 dependencies {
+  implementation project(":rncamerakit")
     implementation project(':react-native-firebase')
     implementation project(':react-native-alarm-notification')
     compile(project(':react-native-google-places')) {
